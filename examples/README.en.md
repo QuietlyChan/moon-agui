@@ -10,6 +10,7 @@ This workspace shows how to emit AG-UI 1.0 events from MoonBit agents. The examp
 | --- | --- |
 | `basic_events` | Builds a complete lifecycle, validates it, and demonstrates JSON decoding plus SSE framing |
 | `echo_server` | Serves a native HTTP `POST /agent` AG-UI SSE endpoint |
+| `web_agent` | Complete browser frontend, MoonBit SSE backend, and a GitHub Pages-ready offline protocol demo |
 
 ## Run
 
@@ -18,6 +19,7 @@ From the repository root:
 ```shell
 moon run examples/basic_events
 moon run examples/echo_server
+moon run examples/web_agent/backend
 ```
 
 With the server running, send an AG-UI request from another terminal:
@@ -42,3 +44,5 @@ moon run basic_events
 ```
 
 The examples workspace imports the published `QuietlyChan/agui@0.1.0` package, matching the dependency declaration used by Mooncakes consumers.
+
+See [`web_agent/README.en.md`](web_agent/README.en.md) for the complete frontend/backend walkthrough. GitHub Actions publishes `examples/web_agent/frontend` to GitHub Pages; it starts in offline mode and needs no backend.

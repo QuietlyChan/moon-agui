@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#18241e" />
+    <meta name="description" content="AG-UI 1.0 MoonBit streaming protocol demo" />
+    <title>AG-UI MoonBit Protocol Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <div>
+          <strong>AG-UI Protocol Lab</strong>
+          <span>MoonBit SDK 示例</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <label class="mode-control">
+          <span>模式</span>
+          <select id="modeSelect">
+            <option value="demo">离线演示</option>
+            <option value="backend">连接 MoonBit 后端</option>
+          </select>
+        </label>
+        <span class="status" id="connectionStatus" data-state="demo">
+          <i aria-hidden="true"></i><span id="connectionLabel">本地事件流</span>
+        </span>
+        <button class="icon-button" id="clearButton" type="button" title="清空对话" aria-label="清空对话">清空</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar left-panel" aria-label="运行配置">
+        <section class="panel-section">
+          <div class="section-title"><span class="section-index">01</span><h2>运行配置</h2></div>
+          <label class="field-label" for="endpointInput">AG-UI endpoint</label>
+          <input id="endpointInput" class="text-input" value="http://127.0.0.1:8087/agent" autocomplete="off" />
+          <p class="field-help">后端模式下发送标准 RunAgentInput；离线模式不会发出网络请求。</p>
+        </section>
+        <section class="panel-section">
+          <div class="section-title"><span class="section-index">02</span><h2>协议状态</h2></div>
+          <dl class="facts">
+            <div><dt>版本</dt><dd>AG-UI 1.0</dd></div>
+            <div><dt>传输</dt><dd>SSE / JSON</dd></div>
+            <div><dt>线程</dt><dd id="threadValue">未开始</dd></div>
+            <div><dt>Run</dt><dd id="runValue">未开始</dd></div>
+          </dl>
+        </section>
+        <section class="panel-section note-section">
+          <div class="section-title"><span class="section-index">03</span><h2>事件说明</h2></div>
+          <p>右侧时间线展示前端收到的每一帧。消息区域只消费文本事件，原始事件始终保留，便于调试协议和构建自己的 UI。</p>
+          <a href="https://docs.ag-ui.com/" target="_blank" rel="noreferrer">阅读 AG-UI 文档 <span aria-hidden="true">↗</span></a>
+        </section>
+      </aside>
+
+      <section class="chat-panel" aria-label="AG-UI 对话">
+        <div class="chat-heading">
+          <div>
+            <span class="eyebrow">Streaming agent</span>
+            <h1>观察一次完整的 Agent Run</h1>
+          </div>
+          <span class="run-badge" id="runBadge">READY</span>
+        </div>
+        <div class="transcript" id="transcript" role="log" aria-live="polite"></div>
+        <form class="composer" id="composer">
+          <div class="composer-row">
+            <textarea id="messageInput" rows="1" maxlength="2000" placeholder="输入一条消息，例如：解释 AG-UI 的作用" required></textarea>
+            <button class="send-button" id="sendButton" type="submit"><span>发送</span><b aria-hidden="true">↗</b></button>
+          </div>
+          <div class="composer-meta"><span id="hintText">离线演示会生成确定性的 AG-UI 事件</span><span id="characterCount">0 / 2000</span></div>
+        </form>
+      </section>
+
+      <aside class="sidebar event-panel" aria-label="事件时间线">
+        <div class="event-heading"><div><span class="eyebrow">Wire events</span><h2>事件时间线</h2></div><span class="event-count" id="eventCount">0</span></div>
+        <div class="event-list" id="eventList"><div class="empty-state" id="emptyState"><span>等待一次运行</span><small>事件会按接收顺序出现在这里</small></div></div>
+      </aside>
+    </main>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+import {
+  "QuietlyChan/agui/core",
+  "QuietlyChan/agui/server",
+  "QuietlyChan/agui/sse",
+  "moonbitlang/async",
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
+  "moonbitlang/async/socket",
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "+native"

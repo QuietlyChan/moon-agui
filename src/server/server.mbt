@@ -9,16 +9,28 @@ pub(open) trait AgUiAgent {
 }
 
 ///|
+fn response_headers(content_type : String) -> Map[String, String] {
+  {
+    "Content-Type": content_type,
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type, Accept",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Cache-Control": "no-store",
+  }
+}
+
+///|
 async fn write_json_error(
   conn : @http.ServerConnection,
   status : Int,
   reason : String,
   message : String,
 ) -> Unit {
-  conn.send_response(status, reason, extra_headers={
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  })
+  conn.send_response(
+    status,
+    reason,
+    extra_headers=response_headers("application/json; charset=utf-8"),
+  )
   conn.write(Json::object(Map([("error", Json::string(message))])).stringify())
   conn.end_response()
 }
@@ -54,6 +66,9 @@ async fn handle_agent(
     "Cache-Control": "no-cache, no-transform",
     "Connection": "keep-alive",
     "X-Accel-Buffering": "no",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type, Accept",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
   })
   agent.run(input, event => write_event(conn, event)) catch {
     error =>
@@ -72,6 +87,13 @@ async fn handle_request(
   conn : @http.ServerConnection,
   agent : &AgUiAgent,
 ) -> Unit {
+  if request.meth is @http.Options {
+    let headers = response_headers("text/plain; charset=utf-8")
+    headers["Content-Length"] = "0"
+    conn.send_response(204, "No Content", extra_headers=headers)
+    conn.end_response()
+    return
+  }
   match (request.meth, request.path) {
     (@http.Post, "/agent") => handle_agent(body, conn, agent)
     (@http.Post, _) =>

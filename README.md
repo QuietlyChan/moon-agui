@@ -48,14 +48,17 @@ curl -N http://127.0.0.1:8087/agent \
 
 ## 示例 workspace
 
-[`examples`](examples/README.md) 按 MoonBit 官方实践组织为独立 workspace，包含无需 API Key 的离线事件示例和可直接连接的 HTTP/SSE echo agent：
+[`examples`](examples/README.md) 按 MoonBit 官方实践组织为独立 workspace，包含无需 API Key 的离线事件示例、可直接连接的 HTTP/SSE echo agent，以及完整的浏览器前后端示例：
 
 ```shell
 moon run examples/basic_events
 moon run examples/echo_server
+moon run examples/web_agent/backend
 ```
 
 进入服务示例后，可使用 `curl` 或兼容 AG-UI 的前端发送 `POST /agent` 请求。示例 workspace 同时提供 [英文说明](examples/README.en.md)，并在 CI 中执行格式检查、包检查和离线运行验证。
+
+`examples/web_agent/frontend` 默认使用离线 AG-UI 事件流，可以直接部署到 GitHub Pages；切换到“连接 MoonBit 后端”后即可消费真实 SSE endpoint。Pages 发布 workflow 位于 [`.github/workflows/pages.yml`](.github/workflows/pages.yml)。
 
 ## 最小 agent
 

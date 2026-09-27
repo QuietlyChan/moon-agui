@@ -10,6 +10,7 @@
 | --- | --- |
 | `basic_events` | 构造完整生命周期事件，校验事件顺序，并演示 JSON 解码与 SSE framing |
 | `echo_server` | 使用 `AgUiAgent` 启动原生 HTTP `POST /agent` SSE 服务 |
+| `web_agent` | 完整浏览器前端、MoonBit SSE 后端，以及可发布到 GitHub Pages 的离线协议演示 |
 
 ## 运行
 
@@ -18,6 +19,7 @@
 ```shell
 moon run examples/basic_events
 moon run examples/echo_server
+moon run examples/web_agent/backend
 ```
 
 启动服务后，另一个终端发送 AG-UI 请求：
@@ -42,3 +44,5 @@ moon run basic_events
 ```
 
 示例 workspace 依赖已发布的 `QuietlyChan/agui@0.1.0`，用于验证 Mooncakes 用户的真实导入方式。
+
+完整 Web Agent 的前后端说明见 [`web_agent/README.md`](web_agent/README.md)。GitHub Actions 会把 `examples/web_agent/frontend` 发布到 GitHub Pages；页面默认离线运行，不依赖后端。

@@ -51,14 +51,15 @@ impl @server.AgUiAgent for MyAgent with fn run(self, input, emit) {
 
 ## Examples
 
-The [`examples`](examples/README.en.md) workspace follows MoonBit's standalone-example pattern:
+The [`examples`](examples/README.en.md) workspace follows MoonBit's standalone-example pattern and includes a complete browser/backend demo:
 
 ```shell
 moon run examples/basic_events
 moon run examples/echo_server
+moon run examples/web_agent/backend
 ```
 
-`basic_events` validates a complete offline stream and round-trips it through SSE. `echo_server` serves a native `POST /agent` endpoint that can be called with `curl` or an AG-UI-compatible frontend.
+`basic_events` validates a complete offline stream and demonstrates SSE framing. `echo_server` serves a native `POST /agent` endpoint. `web_agent` contains a browser UI that parses AG-UI SSE frames, runs offline on GitHub Pages, and can switch to a real MoonBit backend. The Pages workflow is [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 ## Development
 
