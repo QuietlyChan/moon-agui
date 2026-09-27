@@ -1,0 +1,9 @@
+import {
+  "QuietlyChan/agui/core",
+  "QuietlyChan/agui/server",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "+native"

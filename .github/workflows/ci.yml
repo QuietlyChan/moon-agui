@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sdk:
+    name: SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show toolchain version
+        run: moon version --all
+
+      - name: Resolve SDK dependencies
+        run: moon update
+
+      - name: Check SDK formatting
+        run: moon fmt --check
+
+      - name: Check SDK packages
+        run: moon check
+
+      - name: Build SDK
+        run: moon build
+
+      - name: Test SDK
+        run: moon test
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    needs: sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve example dependencies
+        working-directory: examples
+        run: moon update
+
+      - name: Check example formatting
+        working-directory: examples
+        run: moon fmt --check
+
+      - name: Check example packages
+        working-directory: examples
+        run: moon check
+
+      - name: Build examples
+        working-directory: examples
+        run: moon build
+
+      - name: Run offline example
+        working-directory: examples
+        run: moon run basic_events

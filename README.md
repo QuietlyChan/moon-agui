@@ -1,5 +1,13 @@
 # moon-agui
 
+[简体中文](README.md) | [English](README.en.md)
+
+[![CI](https://github.com/QuietlyChan/moon-agui/actions/workflows/ci.yml/badge.svg)](https://github.com/QuietlyChan/moon-agui/actions/workflows/ci.yml)
+[![MoonBit](https://img.shields.io/badge/MoonBit-native-F5A623.svg)](https://www.moonbitlang.com/)
+[![AG-UI](https://img.shields.io/badge/AG--UI-1.0-2563eb.svg)](https://docs.ag-ui.com/)
+[![Mooncakes](https://img.shields.io/badge/Mooncakes-agui-f59e0b.svg)](https://mooncakes.io/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 MoonBit 的 AG-UI 1.0 SDK，面向需要把智能体运行过程统一输出给聊天界面、审批流和共享状态消费者的 MoonBit 开发者。协议参考官方仓库的 `spec/1.0/schema.json`、fixtures 以及 TypeScript/Python SDK。
 
 本项目提供 server-side wire contract：事件类型化构造、JSON 编解码、SSE 编解码、HTTP endpoint 和流生命周期校验。它不复制 React/TypeScript 客户端的 UI 状态管理。事件 JSON 使用 AG-UI 规定的大写 `type` discriminator 和 camelCase 字段，SSE 使用 `data: {json}\n\n` 帧。
@@ -37,6 +45,17 @@ curl -N http://127.0.0.1:8087/agent \
 ```
 
 响应依次包含 `RUN_STARTED`、`TEXT_MESSAGE_START`、`TEXT_MESSAGE_CONTENT`、`TEXT_MESSAGE_END` 和 `RUN_FINISHED`。
+
+## 示例 workspace
+
+[`examples`](examples/README.md) 按 MoonBit 官方实践组织为独立 workspace，包含无需 API Key 的离线事件示例和可直接连接的 HTTP/SSE echo agent：
+
+```shell
+moon run examples/basic_events
+moon run examples/echo_server
+```
+
+进入服务示例后，可使用 `curl` 或兼容 AG-UI 的前端发送 `POST /agent` 请求。示例 workspace 同时提供 [英文说明](examples/README.en.md)，并在 CI 中执行格式检查、包检查和离线运行验证。
 
 ## 最小 agent
 
@@ -86,3 +105,20 @@ SDK 的目标是为 MoonBit agent 提供稳定的 server-side wire contract，�
 协议跟踪：AG-UI 1.0 schema，参考仓库 <https://github.com/ag-ui-protocol/ag-ui/>，文档 <https://docs.ag-ui.com/>。官方 schema 的未知字段规则允许接收端容忍未来扩展，因此 SDK 解码时保留原始 JSON；对已知 discriminator 的必填字段和联合类型执行校验。
 
 许可证：Apache-2.0。
+
+## 开发与验证
+
+```shell
+moon update
+moon fmt --check
+moon check
+moon test
+
+cd examples
+moon update
+moon fmt --check
+moon check
+moon run basic_events
+```
+
+GitHub Actions 会在 `main` 推送和 Pull Request 上执行同样的检查。项目标签和包元数据包括 `ag-ui`、`agent`、`protocol`、`sse` 与 `moonbit`，方便在 GitHub 和 Mooncakes 中检索。

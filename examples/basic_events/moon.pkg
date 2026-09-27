@@ -1,0 +1,8 @@
+import {
+  "QuietlyChan/agui/core",
+  "QuietlyChan/agui/sse",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "+native"
