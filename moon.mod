@@ -1,4 +1,4 @@
-name = "QuietlyChan/moon-agui"
+name = "QuietlyChan/agui"
 
 source = "src"
 

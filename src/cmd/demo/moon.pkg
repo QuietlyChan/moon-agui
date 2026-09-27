@@ -1,6 +1,6 @@
 import {
-  "QuietlyChan/moon-agui/core",
-  "QuietlyChan/moon-agui/server",
+  "QuietlyChan/agui/core",
+  "QuietlyChan/agui/server",
   "moonbitlang/async",
 }
 

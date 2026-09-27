@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "QuietlyChan/moon-agui/core"
+package "QuietlyChan/agui/core"
 
 // Values
 pub fn validate_event_sequence(Array[AgUiEvent]) -> Unit raise
