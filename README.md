@@ -3,39 +3,87 @@
 [简体中文](README.md) | [English](README.en.md)
 
 [![CI](https://github.com/QuietlyChan/moon-agui/actions/workflows/ci.yml/badge.svg)](https://github.com/QuietlyChan/moon-agui/actions/workflows/ci.yml)
+[![Pages](https://github.com/QuietlyChan/moon-agui/actions/workflows/pages.yml/badge.svg)](https://github.com/QuietlyChan/moon-agui/actions/workflows/pages.yml)
 [![MoonBit](https://img.shields.io/badge/MoonBit-native-F5A623.svg)](https://www.moonbitlang.com/)
 [![AG-UI](https://img.shields.io/badge/AG--UI-1.0-2563eb.svg)](https://docs.ag-ui.com/)
 [![Mooncakes](https://img.shields.io/badge/Mooncakes-agui-f59e0b.svg)](https://mooncakes.io/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-MoonBit 的 AG-UI 1.0 SDK，面向需要把智能体运行过程统一输出给聊天界面、审批流和共享状态消费者的 MoonBit 开发者。协议参考官方仓库的 `spec/1.0/schema.json`、fixtures 以及 TypeScript/Python SDK。
+面向 MoonBit 智能体的 AG-UI 1.0 协议 SDK。它把 agent 运行过程编码为统一的类型化事件，通过 JSON 和 Server-Sent Events（SSE）发送给聊天界面、审批流、共享状态和其他 AG-UI 消费者。
 
-本项目提供 server-side wire contract：事件类型化构造、JSON 编解码、SSE 编解码、HTTP endpoint 和流生命周期校验。它不复制 React/TypeScript 客户端的 UI 状态管理。事件 JSON 使用 AG-UI 规定的大写 `type` discriminator 和 camelCase 字段，SSE 使用 `data: {json}\n\n` 帧。
+项目当前版本为 `0.1.0`，已发布到 Mooncakes：`QuietlyChan/agui`。协议实现参考 [AG-UI 官方仓库](https://github.com/ag-ui-protocol/ag-ui/)、1.0 schema/fixtures 以及官方 SDK 的可观察行为。
 
-## 当前能力
+## 当前实现
 
-- `QuietlyChan/agui/core`：官方 31 个 AG-UI 1.0 事件名，包括文本、工具调用、状态、消息快照、activity、RAW、CUSTOM、run/step、reasoning 和 subagent。
-- `@core.PROTOCOL_VERSION`：当前模型对应的 AG-UI 协议版本常量（`"1.0"`）。
-- 共享模型：多模态 `ContentPart`（data/url/file source）、消息角色、工具和上下文、JSON Patch RFC 6902、interrupt/resume、token usage、agent capabilities。
-- 类型化便利构造器：`Message::user_parts`、`Message::assistant`、`AgUiEvent::run_finished_full`、`run_finished_outcome_interrupt` 等；未知字段和未知事件名会原样保留。
-- 协议校验：`Message::from_json`、`RunAgentInput::from_json` 校验必填字段和联合类型；`validate_event_sequence` 校验 run、消息、工具、reasoning、step、subagent 的流式生命周期。
-- `QuietlyChan/agui/sse`：事件和 keepalive ping 的 SSE 序列化，以及 `parse_frame`/`parse_stream` 解码器，支持 CRLF、多行 `data:` 和注释帧。
-- `QuietlyChan/agui/server`：MoonBit native HTTP `POST /agent` SSE endpoint 抽象，包含正确的流式响应 headers 和 flush。
-- `QuietlyChan/agui/emitter`：带 middleware 的内存 emitter，适合录制、重放和把现有 agent 日志投影为 AG-UI 事件。
-- `src/cmd/demo`：离线 echo agent，可用 `curl` 观察完整的 AG-UI 事件流。
+- **完整事件模型**：官方 31 个 AG-UI 1.0 事件，包括文本、工具调用、状态、消息快照、activity、RAW、CUSTOM、run/step、reasoning 和 subagent 事件。
+- **类型化协议对象**：`RunAgentInput`、消息、工具、上下文、多模态内容、JSON Patch、interrupt/resume、token usage、agent capabilities。
+- **前向兼容解码**：未知事件名和未知字段会保留，方便接收未来协议扩展；已知事件会校验必填字段和联合结构。
+- **生命周期校验**：检查 run、message、tool call、reasoning、step 和 subagent 的开始/增量/结束顺序。
+- **SSE transport**：`data: {json}\n\n` 帧、keepalive ping、CRLF、多行 `data:`、注释帧和流解析。
+- **原生 HTTP 服务**：`AgUiAgent` trait 和 `serve` 函数暴露 `POST /agent`，自动 flush SSE，并支持 CORS/OPTIONS 预检。
+- **事件 emitter**：带 middleware 的内存 `BufferedEmitter`，用于录制、重放、测试和把现有 agent 日志投影为 AG-UI 事件。
 
-协议的 protobuf/binary encoder 不在当前版本中；当前版本完整覆盖 JSON wire format 和 SSE transport。这样不会把 MoonBit SDK 绑定到某个 HTTP 或 protobuf 实现，后续可单独增加 binary transport。
+当前版本专注于 JSON wire format 和 SSE transport，不包含 protobuf/binary encoder，也不提供 React/TypeScript UI 状态管理。
 
-## 运行 demo
+## 包结构
 
-需要 MoonBit nightly/native 工具链：
+| 包 | 用途 |
+| --- | --- |
+| `QuietlyChan/agui/core` | 事件、输入、消息、工具、状态模型、capabilities 和生命周期校验 |
+| `QuietlyChan/agui/sse` | AG-UI 事件的 SSE 编码/解码和 keepalive ping |
+| `QuietlyChan/agui/server` | MoonBit native `POST /agent` SSE 服务端抽象 |
+| `QuietlyChan/agui/emitter` | 可插入 middleware 的内存事件 emitter |
+
+## 安装
+
+使用 Mooncakes 安装：
 
 ```shell
-moon test
-moon run src/cmd/demo
+moon add QuietlyChan/agui
 ```
 
-另一个终端发送 AG-UI 运行请求：
+在 `moon.pkg` 中按需导入：
+
+```moonbit
+import {
+  "QuietlyChan/agui/core",
+  "QuietlyChan/agui/sse",
+  "QuietlyChan/agui/server",
+}
+```
+
+SDK 当前支持 MoonBit native target，HTTP 运行时使用 `moonbitlang/async`。
+
+## 最小 Agent
+
+```moonbit
+struct EchoAgent {}
+
+impl @server.AgUiAgent for EchoAgent with fn run(self, input, emit) {
+  ignore(self)
+  let message_id = input.run_id() + "-assistant"
+  emit(@core.AgUiEvent::run_started(
+    thread_id=input.thread_id(),
+    run_id=input.run_id(),
+  ))
+  emit(@core.AgUiEvent::text_message_start(message_id~))
+  emit(@core.AgUiEvent::text_message_content(
+    message_id~,
+    delta="Hello from MoonBit",
+  ))
+  emit(@core.AgUiEvent::text_message_end(message_id~))
+  emit(@core.AgUiEvent::run_finished(
+    thread_id=input.thread_id(),
+    run_id=input.run_id(),
+  ))
+}
+
+async fn main {
+  @server.serve(EchoAgent::{ } as &@server.AgUiAgent)
+}
+```
+
+服务端接收 AG-UI `RunAgentInput`，响应头为 `text/event-stream`，每个事件都会立即 flush：
 
 ```shell
 curl -N http://127.0.0.1:8087/agent \
@@ -44,41 +92,14 @@ curl -N http://127.0.0.1:8087/agent \
   -d '{"threadId":"thread-1","runId":"run-1","messages":[{"id":"m1","role":"user","content":"Hello"}],"tools":[],"context":[]}'
 ```
 
-响应依次包含 `RUN_STARTED`、`TEXT_MESSAGE_START`、`TEXT_MESSAGE_CONTENT`、`TEXT_MESSAGE_END` 和 `RUN_FINISHED`。
-
-## 示例 workspace
-
-[`examples`](examples/README.md) 按 MoonBit 官方实践组织为独立 workspace，包含无需 API Key 的离线事件示例、可直接连接的 HTTP/SSE echo agent，以及完整的浏览器前后端示例：
-
-```shell
-moon run examples/basic_events
-moon run examples/echo_server
-moon run examples/web_agent/backend
-```
-
-进入服务示例后，可使用 `curl` 或兼容 AG-UI 的前端发送 `POST /agent` 请求。示例 workspace 同时提供 [英文说明](examples/README.en.md)，并在 CI 中执行格式检查、包检查和离线运行验证。
-
-`examples/web_agent/frontend` 默认使用离线 AG-UI 事件流，可以直接部署到 GitHub Pages；切换到“连接 MoonBit 后端”后即可消费真实 SSE endpoint。Pages 发布 workflow 位于 [`.github/workflows/pages.yml`](.github/workflows/pages.yml)。
-
-## 最小 agent
-
-实现 `AgUiAgent`，在 `run` 中按需调用 `emit`：
-
-```moonbit
-impl @server.AgUiAgent for MyAgent with fn run(self, input, emit) {
-  emit(@core.AgUiEvent::run_started(
-    thread_id=input.thread_id(),
-    run_id=input.run_id(),
-  ))
-  // emit text/tool/state events here
-}
-```
-
-## 类型化输入和多模态消息
+## 类型化输入和多模态内容
 
 ```moonbit
 let image = @core.ContentPart::image(
-  source=@core.PartSource::url(value="https://example.test/image.png", mime_type="image/png"),
+  source=@core.PartSource::url(
+    value="https://example.test/image.png",
+    mime_type="image/png",
+  ),
 )
 let input = @core.RunAgentInput::new_typed(
   thread_id="thread-1",
@@ -97,31 +118,58 @@ let input = @core.RunAgentInput::new_typed(
 )
 ```
 
-`Message`、`ContentPart`、`ToolCall`、`Interrupt`、`ResumeEntry` 和 capability 对象都可以通过 `to_json()` 进入官方协议对象；需要继续兼容未来字段时可直接使用 `from_json`/`AgUiEvent::new`。
+所有协议对象都可以通过 `to_json()` 写入官方 wire object；`from_json` 和 `AgUiEvent::new` 可用于保留尚未由 SDK 建模的扩展字段。
 
-## 设计边界
+## 示例和在线演示
 
-SDK 的目标是为 MoonBit agent 提供稳定的 server-side wire contract，而不是复制现有 TypeScript UI SDK。HTTP server、鉴权、模型调用和前端渲染均保持可替换；`RunAgentInput` 和事件对象保留原始 JSON，使 MoonBit agent 可以逐步跟进官方 schema。
+[`examples`](examples/README.md) 是独立的 MoonBit workspace，包含无需 API key 的示例：
 
-## 官方兼容性
+```shell
+# 完整事件生命周期、JSON 解码和 SSE framing
+moon run examples/basic_events
 
-协议跟踪：AG-UI 1.0 schema，参考仓库 <https://github.com/ag-ui-protocol/ag-ui/>，文档 <https://docs.ag-ui.com/>。官方 schema 的未知字段规则允许接收端容忍未来扩展，因此 SDK 解码时保留原始 JSON；对已知 discriminator 的必填字段和联合类型执行校验。
+# 最小 HTTP / SSE echo agent
+moon run examples/echo_server
 
-许可证：Apache-2.0。
+# 浏览器前端 + MoonBit SSE 后端
+moon run examples/web_agent/backend
+```
+
+`examples/web_agent` 包含：
+
+- `frontend/`：原生 HTML/CSS/JavaScript 前端，解析 AG-UI SSE，展示文本消息和原始事件时间线。
+- `backend/`：MoonBit native HTTP 服务，提供 `GET /api/health` 和 `POST /agent`，支持 CORS。
+- 离线模式：不需要后端和 API key，可以在 GitHub Pages 上直接运行确定性事件流。
+- 后端模式：填写 `/agent` 地址，观察真实 MoonBit SSE 事件。
+
+在线查看：<https://quietlychan.github.io/moon-agui/>
+
+GitHub Pages workflow 会发布 `examples/web_agent/frontend`；后端需要自行部署到支持 HTTPS 和 CORS 的服务。
+
+## 兼容性边界
+
+- 协议版本常量为 `@core.PROTOCOL_VERSION == "1.0"`。
+- 事件 discriminator 使用官方大写名称，例如 `RUN_STARTED`、`TEXT_MESSAGE_CONTENT` 和 `RUN_FINISHED`。
+- JSON 字段使用官方 camelCase，例如 `threadId`、`runId`、`messageId`。
+- SDK 只负责协议对象、编码/解码和服务端流输出；模型调用、鉴权、前端框架和 agent 编排由应用自行选择。
+- 当前 transport 是 JSON/SSE；protobuf 或其他 binary transport 可以在不改变 core 模型的前提下单独扩展。
+
+协议详情见 [AG-UI 文档](https://docs.ag-ui.com/) 和 [官方仓库](https://github.com/ag-ui-protocol/ag-ui/)。
 
 ## 开发与验证
+
+仓库通过 `moon.work` 同时管理 SDK 和 examples：
 
 ```shell
 moon update
 moon fmt --check
 moon check
+moon build
 moon test
 
-cd examples
-moon update
-moon fmt --check
-moon check
-moon run basic_events
+moon run examples/basic_events
+moon build examples/web_agent/backend
+node --check examples/web_agent/frontend/app.js
 ```
 
-GitHub Actions 会在 `main` 推送和 Pull Request 上执行同样的检查。项目标签和包元数据包括 `ag-ui`、`agent`、`protocol`、`sse` 与 `moonbit`，方便在 GitHub 和 Mooncakes 中检索。
+GitHub Actions 在 `main` 推送和 Pull Request 上执行 SDK/examples 的格式检查、包检查、构建和测试；Pages workflow 负责发布在线前端。项目使用 Apache-2.0 许可证，详见 [`LICENSE`](LICENSE)。
