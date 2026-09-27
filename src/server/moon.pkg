@@ -1,0 +1,9 @@
+import {
+  "QuietlyChan/moon-agui/core",
+  "QuietlyChan/moon-agui/sse",
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
+  "moonbitlang/async/socket",
+}
+
+supported_targets = "+native"

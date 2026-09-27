@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "QuietlyChan/moon-agui/sse"
+
+import {
+  "QuietlyChan/moon-agui/core",
+}
+
+// Values
+pub fn frame(@core.AgUiEvent) -> String
+
+pub fn ping() -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

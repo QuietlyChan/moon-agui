@@ -1,0 +1,107 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "QuietlyChan/moon-agui/core"
+
+// Values
+pub fn validate_event_sequence(Array[AgUiEvent]) -> Unit raise
+
+// Errors
+
+// Types and methods
+pub struct AgUiEvent {
+  event_type : EventType
+  value : Json
+}
+pub fn AgUiEvent::custom(name~ : String, value~ : Json) -> Self
+pub fn AgUiEvent::event_type(Self) -> EventType
+pub fn AgUiEvent::from_json(Json) -> Self raise
+pub fn AgUiEvent::from_json_string(String) -> Self raise
+pub fn AgUiEvent::messages_snapshot(Array[Json]) -> Self
+pub fn AgUiEvent::new(event_type~ : EventType, fields~ : Map[String, Json]) -> Self
+pub fn AgUiEvent::run_error(message~ : String, code? : String) -> Self
+pub fn AgUiEvent::run_finished(thread_id~ : String, run_id~ : String) -> Self
+pub fn AgUiEvent::run_started(thread_id~ : String, run_id~ : String) -> Self
+pub fn AgUiEvent::state_delta(Json) -> Self
+pub fn AgUiEvent::state_snapshot(Json) -> Self
+pub fn AgUiEvent::step_finished(step_name~ : String) -> Self
+pub fn AgUiEvent::step_started(step_name~ : String) -> Self
+pub fn AgUiEvent::string_field(Self, String) -> String?
+pub fn AgUiEvent::text_message_content(message_id~ : String, delta~ : String) -> Self
+pub fn AgUiEvent::text_message_end(message_id~ : String) -> Self
+pub fn AgUiEvent::text_message_start(message_id~ : String, role? : String) -> Self
+pub fn AgUiEvent::to_json(Self) -> Json
+pub fn AgUiEvent::to_json_string(Self) -> String
+pub fn AgUiEvent::tool_call_args(tool_call_id~ : String, delta~ : String) -> Self
+pub fn AgUiEvent::tool_call_end(tool_call_id~ : String) -> Self
+pub fn AgUiEvent::tool_call_result(message_id~ : String, tool_call_id~ : String, content~ : Json) -> Self
+pub fn AgUiEvent::tool_call_start(tool_call_id~ : String, tool_call_name~ : String, parent_message_id? : String) -> Self
+
+pub(all) enum EventType {
+  TextMessageStart
+  TextMessageContent
+  TextMessageEnd
+  TextMessageChunk
+  ToolCallStart
+  ToolCallArgs
+  ToolCallEnd
+  ToolCallChunk
+  ToolCallResult
+  StateSnapshot
+  StateDelta
+  MessagesSnapshot
+  ActivitySnapshot
+  ActivityDelta
+  Raw
+  Custom
+  RunStarted
+  RunFinished
+  RunError
+  StepStarted
+  StepFinished
+  ReasoningStart
+  ReasoningMessageStart
+  ReasoningMessageContent
+  ReasoningMessageEnd
+  ReasoningMessageChunk
+  ReasoningEnd
+  ReasoningEncryptedValue
+  SubagentStarted
+  SubagentFinished
+  SubagentError
+  Other(String)
+}
+pub fn EventType::from_wire_name(String) -> Self
+pub fn EventType::wire_name(Self) -> String
+
+pub struct Message {
+  value : Json
+}
+pub fn Message::from_json(Json) -> Self raise
+pub fn Message::text(id~ : String, role~ : Role, content~ : String, name? : String) -> Self
+pub fn Message::to_json(Self) -> Json
+
+pub(all) enum Role {
+  Developer
+  System
+  Assistant
+  User
+  Tool
+  Activity
+  Reasoning
+}
+pub fn Role::wire_name(Self) -> String
+
+pub struct RunAgentInput {
+  value : Json
+}
+pub fn RunAgentInput::from_json(Json) -> Self raise
+pub fn RunAgentInput::from_json_string(String) -> Self raise
+pub fn RunAgentInput::messages(Self) -> Array[Json]
+pub fn RunAgentInput::new(thread_id~ : String, run_id~ : String, messages~ : Array[Message], protocol_version? : String, parent_run_id? : String, state? : Json, tools? : Array[Json], context? : Array[Json], forwarded_props? : Json, resume_entries? : Array[Json]) -> Self
+pub fn RunAgentInput::run_id(Self) -> String
+pub fn RunAgentInput::thread_id(Self) -> String
+pub fn RunAgentInput::to_json(Self) -> Json
+pub fn RunAgentInput::to_json_string(Self) -> String
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,9 @@
+import {
+  "QuietlyChan/moon-agui/core",
+}
+
+import {
+  "QuietlyChan/moon-agui/core",
+} for "test"
+
+supported_targets = "+native"

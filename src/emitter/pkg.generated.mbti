@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "QuietlyChan/moon-agui/emitter"
+
+import {
+  "QuietlyChan/moon-agui/core",
+}
+
+// Values
+pub fn emit_with(BufferedEmitter, @core.AgUiEvent, (@core.AgUiEvent) -> @core.AgUiEvent) -> Unit
+
+// Errors
+
+// Types and methods
+pub struct BufferedEmitter {
+  values : Array[@core.AgUiEvent]
+  middleware : Array[(@core.AgUiEvent) -> @core.AgUiEvent]
+}
+pub fn BufferedEmitter::add_middleware(Self, (@core.AgUiEvent) -> @core.AgUiEvent) -> Unit
+pub fn BufferedEmitter::clear(Self) -> Unit
+pub fn BufferedEmitter::emit(Self, @core.AgUiEvent) -> Unit
+pub fn BufferedEmitter::events(Self) -> Array[@core.AgUiEvent]
+pub fn BufferedEmitter::new() -> Self
+
+// Type aliases
+pub type Middleware = (@core.AgUiEvent) -> @core.AgUiEvent
+
+// Traits
+pub(open) trait EventEmitter {
+  fn emit(Self, @core.AgUiEvent) -> Unit
+  fn events(Self) -> Array[@core.AgUiEvent]
+  fn clear(Self) -> Unit
+}
