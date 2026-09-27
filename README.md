@@ -1,18 +1,22 @@
 # moon-agui
 
-MoonBit 的 AG-UI 服务端 SDK，面向需要把智能体运行过程统一输出给聊天界面、审批流和共享状态消费者的 MoonBit 开发者。
+MoonBit 的 AG-UI 1.0 SDK，面向需要把智能体运行过程统一输出给聊天界面、审批流和共享状态消费者的 MoonBit 开发者。协议参考官方仓库的 `spec/1.0/schema.json`、fixtures 以及 TypeScript/Python SDK。
 
-本项目只负责协议核心和 agent 端输出，不实现 React/TypeScript 客户端。事件 JSON 与 AG-UI 1.0 schema 对齐：顶层使用大写 `type` discriminator，字段使用 camelCase，SSE 使用 `data: {json}\n\n` 帧。
+本项目提供 server-side wire contract：事件类型化构造、JSON 编解码、SSE 编解码、HTTP endpoint 和流生命周期校验。它不复制 React/TypeScript 客户端的 UI 状态管理。事件 JSON 使用 AG-UI 规定的大写 `type` discriminator 和 camelCase 字段，SSE 使用 `data: {json}\n\n` 帧。
 
 ## 当前能力
 
-- `QuietlyChan/agui/core`：31 个 AG-UI 1.0 事件名、`AgUiEvent` 构造/解析、`RunAgentInput`、消息角色、JSON 扩展字段透传。
-- `QuietlyChan/agui/core`：运行生命周期、文本消息、工具调用和步骤事件的配对校验器。
-- `QuietlyChan/agui/sse`：事件和 keepalive ping 的 SSE 序列化。
-- `QuietlyChan/agui/server`：MoonBit native HTTP `POST /agent` SSE endpoint 抽象。
+- `QuietlyChan/agui/core`：官方 31 个 AG-UI 1.0 事件名，包括文本、工具调用、状态、消息快照、activity、RAW、CUSTOM、run/step、reasoning 和 subagent。
+- `@core.PROTOCOL_VERSION`：当前模型对应的 AG-UI 协议版本常量（`"1.0"`）。
+- 共享模型：多模态 `ContentPart`（data/url/file source）、消息角色、工具和上下文、JSON Patch RFC 6902、interrupt/resume、token usage、agent capabilities。
+- 类型化便利构造器：`Message::user_parts`、`Message::assistant`、`AgUiEvent::run_finished_full`、`run_finished_outcome_interrupt` 等；未知字段和未知事件名会原样保留。
+- 协议校验：`Message::from_json`、`RunAgentInput::from_json` 校验必填字段和联合类型；`validate_event_sequence` 校验 run、消息、工具、reasoning、step、subagent 的流式生命周期。
+- `QuietlyChan/agui/sse`：事件和 keepalive ping 的 SSE 序列化，以及 `parse_frame`/`parse_stream` 解码器，支持 CRLF、多行 `data:` 和注释帧。
+- `QuietlyChan/agui/server`：MoonBit native HTTP `POST /agent` SSE endpoint 抽象，包含正确的流式响应 headers 和 flush。
+- `QuietlyChan/agui/emitter`：带 middleware 的内存 emitter，适合录制、重放和把现有 agent 日志投影为 AG-UI 事件。
 - `src/cmd/demo`：离线 echo agent，可用 `curl` 观察完整的 AG-UI 事件流。
 
-未知的事件名和未知字段会被保留，便于 AG-UI schema 演进；已知事件的便利 `*_CHUNK` 事件不自动展开，agent 可以直接使用 `AgUiEvent::new` 或 `CUSTOM` 扩展。
+协议的 protobuf/binary encoder 不在当前版本中；当前版本完整覆盖 JSON wire format 和 SSE transport。这样不会把 MoonBit SDK 绑定到某个 HTTP 或 protobuf 实现，后续可单独增加 binary transport。
 
 ## 运行 demo
 
@@ -48,10 +52,37 @@ impl @server.AgUiAgent for MyAgent with fn run(self, input, emit) {
 }
 ```
 
+## 类型化输入和多模态消息
+
+```moonbit
+let image = @core.ContentPart::image(
+  source=@core.PartSource::url(value="https://example.test/image.png", mime_type="image/png"),
+)
+let input = @core.RunAgentInput::new_typed(
+  thread_id="thread-1",
+  run_id="run-1",
+  messages=[
+    @core.Message::user_parts(
+      id="message-1",
+      content=[@core.ContentPart::text(text="Describe this"), image],
+    ),
+  ],
+  tools=[@core.Tool::new(
+    name="search",
+    description="Search the knowledge base",
+    parameters={"type":"object"},
+  )],
+)
+```
+
+`Message`、`ContentPart`、`ToolCall`、`Interrupt`、`ResumeEntry` 和 capability 对象都可以通过 `to_json()` 进入官方协议对象；需要继续兼容未来字段时可直接使用 `from_json`/`AgUiEvent::new`。
+
 ## 设计边界
 
 SDK 的目标是为 MoonBit agent 提供稳定的 server-side wire contract，而不是复制现有 TypeScript UI SDK。HTTP server、鉴权、模型调用和前端渲染均保持可替换；`RunAgentInput` 和事件对象保留原始 JSON，使 MoonBit agent 可以逐步跟进官方 schema。
 
-协议跟踪：AG-UI 1.0 schema，参考仓库 <https://github.com/ag-ui-protocol/ag-ui/>，文档 <https://docs.ag-ui.com/>。
+## 官方兼容性
+
+协议跟踪：AG-UI 1.0 schema，参考仓库 <https://github.com/ag-ui-protocol/ag-ui/>，文档 <https://docs.ag-ui.com/>。官方 schema 的未知字段规则允许接收端容忍未来扩展，因此 SDK 解码时保留原始 JSON；对已知 discriminator 的必填字段和联合类型执行校验。
 
 许可证：Apache-2.0。

@@ -8,6 +8,10 @@ import {
 // Values
 pub fn frame(@core.AgUiEvent) -> String
 
+pub fn parse_frame(String) -> @core.AgUiEvent? raise
+
+pub fn parse_stream(String) -> Array[@core.AgUiEvent] raise
+
 pub fn ping() -> String
 
 // Errors

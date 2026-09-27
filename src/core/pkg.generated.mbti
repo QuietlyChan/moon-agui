@@ -2,6 +2,42 @@
 package "QuietlyChan/agui/core"
 
 // Values
+pub const PROTOCOL_VERSION : String = "1.0"
+
+pub fn execution_capabilities(code_execution? : Bool, sandboxed? : Bool, max_iterations? : Int, max_execution_time? : Int) -> Json
+
+pub fn human_in_the_loop_capabilities(supported? : Bool, approvals? : Bool, interventions? : Bool, feedback? : Bool, interrupts? : Bool, approve_with_edits? : Bool) -> Json
+
+pub fn identity_capabilities(name? : String, kind? : String, description? : String, version? : String, provider? : String, documentation_url? : String, metadata? : Json) -> Json
+
+pub fn json_patch(Array[JsonPatchOperation]) -> Json
+
+pub fn multi_agent_capabilities(supported? : Bool, delegation? : Bool, handoffs? : Bool, subagents? : Array[SubagentInfo]) -> Json
+
+pub fn multimodal_capabilities(input~ : Json, output~ : Json) -> Json
+
+pub fn multimodal_input_capabilities(image? : Bool, audio? : Bool, video? : Bool, pdf? : Bool, file? : Bool) -> Json
+
+pub fn multimodal_output_capabilities(image? : Bool, audio? : Bool) -> Json
+
+pub fn output_capabilities(structured_output? : Bool, supported_mime_types? : Array[String]) -> Json
+
+pub fn reasoning_capabilities(supported? : Bool, streaming? : Bool, encrypted? : Bool) -> Json
+
+pub fn run_finished_outcome_cancelled() -> Json
+
+pub fn run_finished_outcome_interrupt(Array[Interrupt]) -> Json
+
+pub fn run_finished_outcome_success(pending_tool_call_ids? : Array[String]) -> Json
+
+pub fn state_capabilities(snapshots? : Bool, deltas? : Bool, memory? : Bool, persistent_state? : Bool) -> Json
+
+pub fn subagent_finished_outcome(Bool, interrupt_ids? : Array[String]) -> Json
+
+pub fn tools_capabilities(supported? : Bool, items? : Array[Tool], parallel_calls? : Bool, client_provided? : Bool) -> Json
+
+pub fn transport_capabilities(streaming? : Bool, websocket? : Bool, http_binary? : Bool, push_notifications? : Bool, resumable? : Bool) -> Json
+
 pub fn validate_event_sequence(Array[AgUiEvent]) -> Unit raise
 
 // Errors
@@ -11,29 +47,72 @@ pub struct AgUiEvent {
   event_type : EventType
   value : Json
 }
-pub fn AgUiEvent::custom(name~ : String, value~ : Json) -> Self
+pub fn AgUiEvent::activity_delta(message_id~ : String, activity_type~ : String, patch~ : Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::activity_snapshot(message_id~ : String, activity_type~ : String, content~ : Json, replace? : Bool, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::custom(name~ : String, value~ : Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::custom_with_options(name~ : String, value~ : Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
 pub fn AgUiEvent::event_type(Self) -> EventType
 pub fn AgUiEvent::from_json(Json) -> Self raise
 pub fn AgUiEvent::from_json_string(String) -> Self raise
-pub fn AgUiEvent::messages_snapshot(Array[Json]) -> Self
+pub fn AgUiEvent::messages_snapshot(Array[Json], timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
 pub fn AgUiEvent::new(event_type~ : EventType, fields~ : Map[String, Json]) -> Self
-pub fn AgUiEvent::run_error(message~ : String, code? : String) -> Self
-pub fn AgUiEvent::run_finished(thread_id~ : String, run_id~ : String) -> Self
-pub fn AgUiEvent::run_started(thread_id~ : String, run_id~ : String) -> Self
-pub fn AgUiEvent::state_delta(Json) -> Self
-pub fn AgUiEvent::state_snapshot(Json) -> Self
-pub fn AgUiEvent::step_finished(step_name~ : String) -> Self
-pub fn AgUiEvent::step_started(step_name~ : String) -> Self
+pub fn AgUiEvent::raw(event~ : Json, source? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_encrypted_value(subtype~ : String, entity_id~ : String, encrypted_value~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_end(message_id~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_message_chunk(message_id? : String, delta? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_message_content(message_id~ : String, delta~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_message_end(message_id~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_message_start(message_id~ : String, role? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::reasoning_start(message_id~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::run_error(message~ : String, code? : String, usage? : Array[TokenUsage], timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::run_error_full(message~ : String, code? : String, usage? : Array[TokenUsage], timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::run_finished(thread_id~ : String, run_id~ : String, result? : Json, outcome? : Json, usage? : Array[TokenUsage], timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::run_finished_full(thread_id~ : String, run_id~ : String, result? : Json, outcome? : Json, usage? : Array[TokenUsage], timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::run_started(thread_id~ : String, run_id~ : String, protocol_version? : String, parent_run_id? : String, input? : RunAgentInput, timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::run_started_full(thread_id~ : String, run_id~ : String, protocol_version? : String, parent_run_id? : String, input? : RunAgentInput, timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::state_delta(Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::state_snapshot(Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::step_finished(step_name~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::step_started(step_name~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
 pub fn AgUiEvent::string_field(Self, String) -> String?
-pub fn AgUiEvent::text_message_content(message_id~ : String, delta~ : String) -> Self
-pub fn AgUiEvent::text_message_end(message_id~ : String) -> Self
-pub fn AgUiEvent::text_message_start(message_id~ : String, role? : String) -> Self
+pub fn AgUiEvent::subagent_error(subagent_run_id~ : String, message~ : String, code? : String, timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::subagent_finished(subagent_run_id~ : String, result? : Json, outcome? : Json, timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::subagent_started(subagent_run_id~ : String, name~ : String, description? : String, parent_subagent_run_id? : String, parent_tool_call_id? : String, parent_message_id? : String, timestamp? : Int, raw_event? : Json, metadata? : Json) -> Self
+pub fn AgUiEvent::text_message_chunk(message_id? : String, role? : String, delta? : String, name? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::text_message_content(message_id~ : String, delta~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::text_message_end(message_id~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::text_message_start(message_id~ : String, role? : String, name? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
 pub fn AgUiEvent::to_json(Self) -> Json
 pub fn AgUiEvent::to_json_string(Self) -> String
-pub fn AgUiEvent::tool_call_args(tool_call_id~ : String, delta~ : String) -> Self
-pub fn AgUiEvent::tool_call_end(tool_call_id~ : String) -> Self
-pub fn AgUiEvent::tool_call_result(message_id~ : String, tool_call_id~ : String, content~ : Json) -> Self
-pub fn AgUiEvent::tool_call_start(tool_call_id~ : String, tool_call_name~ : String, parent_message_id? : String) -> Self
+pub fn AgUiEvent::tool_call_args(tool_call_id~ : String, delta~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::tool_call_chunk(tool_call_id? : String, tool_call_name? : String, parent_message_id? : String, delta? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::tool_call_end(tool_call_id~ : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::tool_call_result(message_id~ : String, tool_call_id~ : String, content~ : Json, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn AgUiEvent::tool_call_start(tool_call_id~ : String, tool_call_name~ : String, parent_message_id? : String, timestamp? : Int, raw_event? : Json, metadata? : Json, subagent_run_id? : String) -> Self
+
+pub struct AgentCapabilities {
+  value : Json
+}
+pub fn AgentCapabilities::new(Map[String, Json]) -> Self
+pub fn AgentCapabilities::to_json(Self) -> Json
+pub fn AgentCapabilities::with_sections(identity? : IdentityCapabilities, transport? : TransportCapabilities, tools? : ToolsCapabilities, output? : OutputCapabilities, state? : StateCapabilities, multi_agent? : MultiAgentCapabilities, reasoning? : ReasoningCapabilities, multimodal? : MultimodalCapabilities, execution? : ExecutionCapabilities, human_in_the_loop? : HumanInTheLoopCapabilities, custom? : Json) -> Self
+
+pub struct ContentPart {
+  value : Json
+}
+pub fn ContentPart::audio(source~ : PartSource, id? : String, metadata? : Json) -> Self
+pub fn ContentPart::document(source~ : PartSource, id? : String, metadata? : Json) -> Self
+pub fn ContentPart::from_json(Json) -> Self
+pub fn ContentPart::image(source~ : PartSource, id? : String, metadata? : Json) -> Self
+pub fn ContentPart::text(text~ : String, id? : String, metadata? : Json) -> Self
+pub fn ContentPart::to_json(Self) -> Json
+pub fn ContentPart::video(source~ : PartSource, id? : String, metadata? : Json) -> Self
+
+pub struct Context {
+  value : Json
+}
+pub fn Context::new(description~ : String, value~ : String) -> Self
+pub fn Context::to_json(Self) -> Json
 
 pub(all) enum EventType {
   TextMessageStart
@@ -72,12 +151,117 @@ pub(all) enum EventType {
 pub fn EventType::from_wire_name(String) -> Self
 pub fn EventType::wire_name(Self) -> String
 
+pub struct ExecutionCapabilities {
+  value : Json
+}
+pub fn ExecutionCapabilities::new(code_execution? : Bool, sandboxed? : Bool, max_iterations? : Int, max_execution_time? : Int) -> Self
+pub fn ExecutionCapabilities::to_json(Self) -> Json
+
+pub struct FunctionCall {
+  value : Json
+}
+pub fn FunctionCall::new(name~ : String, arguments~ : String) -> Self
+pub fn FunctionCall::to_json(Self) -> Json
+
+pub struct HumanInTheLoopCapabilities {
+  value : Json
+}
+pub fn HumanInTheLoopCapabilities::new(supported? : Bool, approvals? : Bool, interventions? : Bool, feedback? : Bool, interrupts? : Bool, approve_with_edits? : Bool) -> Self
+pub fn HumanInTheLoopCapabilities::to_json(Self) -> Json
+
+pub struct IdentityCapabilities {
+  value : Json
+}
+pub fn IdentityCapabilities::new(name? : String, kind? : String, description? : String, version? : String, provider? : String, documentation_url? : String, metadata? : Json) -> Self
+pub fn IdentityCapabilities::to_json(Self) -> Json
+
+pub struct Interrupt {
+  value : Json
+}
+pub fn Interrupt::new(id~ : String, reason~ : String, message? : String, tool_call_id? : String, response_schema? : Json, expires_at? : String, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn Interrupt::to_json(Self) -> Json
+
+pub struct JsonPatchOperation {
+  value : Json
+}
+pub fn JsonPatchOperation::add(path~ : String, value~ : Json) -> Self
+pub fn JsonPatchOperation::copy(from~ : String, path~ : String) -> Self
+pub fn JsonPatchOperation::from_json(Json) -> Self
+pub fn JsonPatchOperation::move_op(from~ : String, path~ : String) -> Self
+pub fn JsonPatchOperation::remove(path~ : String) -> Self
+pub fn JsonPatchOperation::replace(path~ : String, value~ : Json) -> Self
+pub fn JsonPatchOperation::test_op(path~ : String, value~ : Json) -> Self
+pub fn JsonPatchOperation::to_json(Self) -> Json
+
 pub struct Message {
   value : Json
 }
+pub fn Message::activity(id~ : String, activity_type~ : String, content~ : Json, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn Message::assistant(id~ : String, content? : String, tool_calls? : Array[ToolCall], name? : String, metadata? : Json, encrypted_value? : String, subagent_run_id? : String) -> Self
+pub fn Message::content(Self) -> Json?
+pub fn Message::developer(id~ : String, content~ : String, name? : String, encrypted_value? : String, metadata? : Json, subagent_run_id? : String) -> Self
 pub fn Message::from_json(Json) -> Self raise
+pub fn Message::id(Self) -> String
+pub fn Message::reasoning(id~ : String, content~ : String, encrypted_value? : String, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn Message::role_name(Self) -> String
+pub fn Message::system(id~ : String, content~ : String, name? : String, encrypted_value? : String, metadata? : Json, subagent_run_id? : String) -> Self
 pub fn Message::text(id~ : String, role~ : Role, content~ : String, name? : String) -> Self
 pub fn Message::to_json(Self) -> Json
+pub fn Message::tool(id~ : String, tool_call_id~ : String, content~ : String, error? : String, encrypted_value? : String, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn Message::tool_parts(id~ : String, tool_call_id~ : String, content~ : Array[ContentPart], error? : String, encrypted_value? : String, metadata? : Json, subagent_run_id? : String) -> Self
+pub fn Message::user(id~ : String, content~ : String, name? : String, metadata? : Json, encrypted_value? : String, subagent_run_id? : String) -> Self
+pub fn Message::user_parts(id~ : String, content~ : Array[ContentPart], name? : String, metadata? : Json, encrypted_value? : String, subagent_run_id? : String) -> Self
+
+pub struct MultiAgentCapabilities {
+  value : Json
+}
+pub fn MultiAgentCapabilities::new(supported? : Bool, delegation? : Bool, handoffs? : Bool, subagents? : Array[SubagentInfo]) -> Self
+pub fn MultiAgentCapabilities::to_json(Self) -> Json
+
+pub struct MultimodalCapabilities {
+  value : Json
+}
+pub fn MultimodalCapabilities::new(input~ : MultimodalInputCapabilities, output~ : MultimodalOutputCapabilities) -> Self
+pub fn MultimodalCapabilities::to_json(Self) -> Json
+
+pub struct MultimodalInputCapabilities {
+  value : Json
+}
+pub fn MultimodalInputCapabilities::new(image? : Bool, audio? : Bool, video? : Bool, pdf? : Bool, file? : Bool) -> Self
+pub fn MultimodalInputCapabilities::to_json(Self) -> Json
+
+pub struct MultimodalOutputCapabilities {
+  value : Json
+}
+pub fn MultimodalOutputCapabilities::new(image? : Bool, audio? : Bool) -> Self
+pub fn MultimodalOutputCapabilities::to_json(Self) -> Json
+
+pub struct OutputCapabilities {
+  value : Json
+}
+pub fn OutputCapabilities::new(structured_output? : Bool, supported_mime_types? : Array[String]) -> Self
+pub fn OutputCapabilities::to_json(Self) -> Json
+
+pub struct PartSource {
+  value : Json
+}
+pub fn PartSource::data(value~ : String, mime_type~ : String) -> Self
+pub fn PartSource::file(value~ : String, provider? : String, mime_type? : String) -> Self
+pub fn PartSource::from_json(Json) -> Self
+pub fn PartSource::to_json(Self) -> Json
+pub fn PartSource::url(value~ : String, mime_type? : String) -> Self
+
+pub struct ReasoningCapabilities {
+  value : Json
+}
+pub fn ReasoningCapabilities::new(supported? : Bool, streaming? : Bool, encrypted? : Bool) -> Self
+pub fn ReasoningCapabilities::to_json(Self) -> Json
+
+pub struct ResumeEntry {
+  value : Json
+}
+pub fn ResumeEntry::new(interrupt_id~ : String, status~ : String, payload? : Json, metadata? : Json) -> Self
+pub fn ResumeEntry::to_json(Self) -> Json
 
 pub(all) enum Role {
   Developer
@@ -93,14 +277,64 @@ pub fn Role::wire_name(Self) -> String
 pub struct RunAgentInput {
   value : Json
 }
+pub fn RunAgentInput::context(Self) -> Array[Json]
+pub fn RunAgentInput::forwarded_props(Self) -> Json?
 pub fn RunAgentInput::from_json(Json) -> Self raise
 pub fn RunAgentInput::from_json_string(String) -> Self raise
 pub fn RunAgentInput::messages(Self) -> Array[Json]
 pub fn RunAgentInput::new(thread_id~ : String, run_id~ : String, messages~ : Array[Message], protocol_version? : String, parent_run_id? : String, state? : Json, tools? : Array[Json], context? : Array[Json], forwarded_props? : Json, resume_entries? : Array[Json]) -> Self
+pub fn RunAgentInput::new_typed(thread_id~ : String, run_id~ : String, messages~ : Array[Message], protocol_version? : String, parent_run_id? : String, state? : Json, tools? : Array[Tool], context? : Array[Context], forwarded_props? : Json, resume? : Array[ResumeEntry]) -> Self
+pub fn RunAgentInput::parent_run_id(Self) -> String?
+pub fn RunAgentInput::protocol_version(Self) -> String?
+pub fn RunAgentInput::resume(Self) -> Array[Json]
 pub fn RunAgentInput::run_id(Self) -> String
+pub fn RunAgentInput::state(Self) -> Json?
 pub fn RunAgentInput::thread_id(Self) -> String
 pub fn RunAgentInput::to_json(Self) -> Json
 pub fn RunAgentInput::to_json_string(Self) -> String
+pub fn RunAgentInput::tools(Self) -> Array[Json]
+
+pub struct StateCapabilities {
+  value : Json
+}
+pub fn StateCapabilities::new(snapshots? : Bool, deltas? : Bool, memory? : Bool, persistent_state? : Bool) -> Self
+pub fn StateCapabilities::to_json(Self) -> Json
+
+pub struct SubagentInfo {
+  value : Json
+}
+pub fn SubagentInfo::new(name~ : String, description? : String) -> Self
+pub fn SubagentInfo::to_json(Self) -> Json
+
+pub struct TokenUsage {
+  value : Json
+}
+pub fn TokenUsage::new(provider? : String, model? : String, input_tokens? : Int, output_tokens? : Int, total_tokens? : Int, reasoning_tokens? : Int, cached_input_tokens? : Int, cache_write_input_tokens? : Int) -> Self
+pub fn TokenUsage::to_json(Self) -> Json
+
+pub struct Tool {
+  value : Json
+}
+pub fn Tool::new(name~ : String, description~ : String, parameters? : Json, metadata? : Json) -> Self
+pub fn Tool::to_json(Self) -> Json
+
+pub struct ToolCall {
+  value : Json
+}
+pub fn ToolCall::function(id~ : String, name~ : String, arguments~ : String, encrypted_value? : String, metadata? : Json) -> Self
+pub fn ToolCall::to_json(Self) -> Json
+
+pub struct ToolsCapabilities {
+  value : Json
+}
+pub fn ToolsCapabilities::new(supported? : Bool, items? : Array[Tool], parallel_calls? : Bool, client_provided? : Bool) -> Self
+pub fn ToolsCapabilities::to_json(Self) -> Json
+
+pub struct TransportCapabilities {
+  value : Json
+}
+pub fn TransportCapabilities::new(streaming? : Bool, websocket? : Bool, http_binary? : Bool, push_notifications? : Bool, resumable? : Bool) -> Self
+pub fn TransportCapabilities::to_json(Self) -> Json
 
 // Type aliases
 

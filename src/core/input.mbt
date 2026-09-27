@@ -32,6 +32,73 @@ pub struct Message {
 }
 
 ///|
+fn validate_tool_call(value : Json) -> Unit raise {
+  let kind = required_model_string(value, "type", "tool call")
+  guard kind == "function" else { fail("tool call type must be function") }
+  let function = required_model_field(value, "function", "tool call")
+  ignore(required_model_string(function, "name", "function call"))
+  ignore(required_model_string(function, "arguments", "function call"))
+  ignore(required_model_string(value, "id", "tool call"))
+  validate_optional_model_string(value, "encryptedValue", "tool call")
+  validate_optional_model_object(value, "metadata", "tool call")
+}
+
+///|
+fn validate_optional_model_string(
+  value : Json,
+  name : String,
+  label : String,
+) -> Unit raise {
+  match value {
+    Object(fields) =>
+      match fields.get(name) {
+        Some(String(_)) | None => ()
+        Some(_) => fail(label + " " + name + " must be a string")
+      }
+    _ => fail(label + " must be an object")
+  }
+}
+
+///|
+fn validate_optional_model_object(
+  value : Json,
+  name : String,
+  label : String,
+) -> Unit raise {
+  match value {
+    Object(fields) =>
+      match fields.get(name) {
+        Some(Object(_)) | None => ()
+        Some(_) => fail(label + " " + name + " must be an object")
+      }
+    _ => fail(label + " must be an object")
+  }
+}
+
+///|
+fn validate_tool(value : Json) -> Unit raise {
+  ignore(required_model_string(value, "name", "tool"))
+  ignore(required_model_string(value, "description", "tool"))
+  validate_optional_model_object(value, "metadata", "tool")
+}
+
+///|
+fn validate_context(value : Json) -> Unit raise {
+  ignore(required_model_string(value, "description", "context"))
+  ignore(required_model_string(value, "value", "context"))
+}
+
+///|
+fn validate_resume(value : Json) -> Unit raise {
+  ignore(required_model_string(value, "interruptId", "resume entry"))
+  let status = required_model_string(value, "status", "resume entry")
+  guard status == "resolved" || status == "cancelled" else {
+    fail("resume entry status must be resolved or cancelled")
+  }
+  validate_optional_model_object(value, "metadata", "resume entry")
+}
+
+///|
 /// Build a simple text message.
 pub fn Message::text(
   id~ : String,
@@ -55,7 +122,85 @@ pub fn Message::text(
 /// Decode and preserve an arbitrary AG-UI message object.
 pub fn Message::from_json(value : Json) -> Message raise {
   match value {
-    { "id": String(_), "role": String(_), .. } => { value, }
+    { "id": String(_), "role": String(role), .. } => {
+      validate_optional_model_string(value, "subagentRunId", "message")
+      match role {
+        "developer" | "system" => {
+          validate_optional_model_string(value, "name", "message")
+          validate_optional_model_string(value, "encryptedValue", "message")
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "content": String(_), .. } => ()
+            _ => fail("developer/system messages require string content")
+          }
+        }
+        "assistant" => {
+          validate_optional_model_string(value, "name", "message")
+          validate_optional_model_string(value, "encryptedValue", "message")
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "content": String(_), "toolCalls": Array(tool_calls), .. } =>
+              for tool_call in tool_calls {
+                validate_tool_call(tool_call)
+              }
+            { "content": String(_), .. } => ()
+            { "toolCalls": Array(tool_calls), .. } =>
+              for tool_call in tool_calls {
+                validate_tool_call(tool_call)
+              }
+            { "content": _, .. } =>
+              fail("assistant message content must be a string")
+            _ => ()
+          }
+        }
+        "user" => {
+          validate_optional_model_string(value, "name", "message")
+          validate_optional_model_string(value, "encryptedValue", "message")
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "content": String(_), .. } => ()
+            { "content": Array(_), .. } =>
+              validate_content_parts(
+                required_model_field(value, "content", "user message"),
+                "user message",
+              )
+            _ => fail("user messages require string or parts content")
+          }
+        }
+        "tool" => {
+          validate_optional_model_string(value, "error", "message")
+          validate_optional_model_string(value, "encryptedValue", "message")
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "content": String(_), "toolCallId": String(_), .. } => ()
+            { "content": Array(_), "toolCallId": String(_), .. } =>
+              validate_content_parts(
+                required_model_field(value, "content", "tool message"),
+                "tool message",
+              )
+            _ => fail("tool messages require content and toolCallId")
+          }
+        }
+        "activity" => {
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "activityType": String(_), "content": Object(_), .. } => ()
+            _ =>
+              fail("activity messages require activityType and object content")
+          }
+        }
+        "reasoning" => {
+          validate_optional_model_string(value, "encryptedValue", "message")
+          validate_optional_model_object(value, "metadata", "message")
+          match value {
+            { "content": String(_), .. } => ()
+            _ => fail("reasoning messages require string content")
+          }
+        }
+        _ => fail("unknown AG-UI message role: " + role)
+      }
+      { value, }
+    }
     _ => fail("AG-UI message must contain string id and role fields")
   }
 }
@@ -78,7 +223,7 @@ pub fn RunAgentInput::new(
   thread_id~ : String,
   run_id~ : String,
   messages~ : Array[Message],
-  protocol_version? : String = "1.0",
+  protocol_version? : String = PROTOCOL_VERSION,
   parent_run_id? : String,
   state? : Json,
   tools? : Array[Json] = [],
@@ -117,8 +262,38 @@ pub fn RunAgentInput::new(
 /// Decode an AG-UI run request and validate its required envelope fields.
 pub fn RunAgentInput::from_json(value : Json) -> RunAgentInput raise {
   match value {
-    { "threadId": String(_), "runId": String(_), "messages": Array(_), .. } =>
+    {
+      "threadId": String(_),
+      "runId": String(_),
+      "messages": Array(messages),
+      ..
+    } => {
+      for message in messages {
+        ignore(Message::from_json(message))
+      }
+      match value {
+        { "tools": Array(tools), .. } =>
+          for tool in tools {
+            validate_tool(tool)
+          }
+        _ => ()
+      }
+      match value {
+        { "context": Array(context), .. } =>
+          for item in context {
+            validate_context(item)
+          }
+        _ => ()
+      }
+      match value {
+        { "resume": Array(entries), .. } =>
+          for entry in entries {
+            validate_resume(entry)
+          }
+        _ => ()
+      }
       { value, }
+    }
     _ => fail("RunAgentInput requires string threadId/runId and messages array")
   }
 }
