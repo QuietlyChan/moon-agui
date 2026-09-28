@@ -79,6 +79,34 @@ test "sequence validator accepts a complete streamed reply" {
 }
 
 ///|
+test "sequence validator accepts a tool workflow with state snapshot" {
+  @core.validate_event_sequence([
+    @core.AgUiEvent::run_started(thread_id="thread-1", run_id="run-1"),
+    @core.AgUiEvent::step_started(step_name="lookup"),
+    @core.AgUiEvent::tool_call_start(
+      tool_call_id="call-1",
+      tool_call_name="lookup",
+    ),
+    @core.AgUiEvent::tool_call_args(
+      tool_call_id="call-1",
+      delta="{\"query\":\"MoonBit\"}",
+    ),
+    @core.AgUiEvent::tool_call_end(tool_call_id="call-1"),
+    @core.AgUiEvent::tool_call_result(
+      message_id="tool-result-1",
+      tool_call_id="call-1",
+      content=Json::string("Lookup complete"),
+    ),
+    @core.AgUiEvent::state_snapshot({ "lastTool": "lookup" }),
+    @core.AgUiEvent::text_message_start(message_id="msg-1", role="assistant"),
+    @core.AgUiEvent::text_message_content(message_id="msg-1", delta="Done"),
+    @core.AgUiEvent::text_message_end(message_id="msg-1"),
+    @core.AgUiEvent::step_finished(step_name="lookup"),
+    @core.AgUiEvent::run_finished(thread_id="thread-1", run_id="run-1"),
+  ])
+}
+
+///|
 test "sequence validator rejects an unmatched message end" {
   try
     @core.validate_event_sequence([

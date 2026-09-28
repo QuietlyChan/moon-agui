@@ -1,17 +1,36 @@
 ///|
 /// Build a complete, protocol-valid AG-UI response without a model or network.
 fn sample_events() -> Array[@core.AgUiEvent] {
+  let tool_call_id = "call-demo"
+  let tool_result = "Lookup complete for: MoonBit"
   [
     @core.AgUiEvent::run_started(thread_id="thread-demo", run_id="run-demo"),
+    @core.AgUiEvent::step_started(step_name="lookup"),
+    @core.AgUiEvent::tool_call_start(tool_call_id~, tool_call_name="lookup"),
+    @core.AgUiEvent::tool_call_args(
+      tool_call_id~,
+      delta="{\"query\":\"MoonBit\"}",
+    ),
+    @core.AgUiEvent::tool_call_end(tool_call_id~),
+    @core.AgUiEvent::tool_call_result(
+      message_id="tool-result-demo",
+      tool_call_id~,
+      content=Json::string(tool_result),
+    ),
+    @core.AgUiEvent::state_snapshot({
+      "lastTool": "lookup",
+      "result": tool_result,
+    }),
     @core.AgUiEvent::text_message_start(
       message_id="message-demo",
       role="assistant",
     ),
     @core.AgUiEvent::text_message_content(
       message_id="message-demo",
-      delta="Hello from a MoonBit AG-UI agent!",
+      delta="Lookup complete for: MoonBit",
     ),
     @core.AgUiEvent::text_message_end(message_id="message-demo"),
+    @core.AgUiEvent::step_finished(step_name="lookup"),
     @core.AgUiEvent::run_finished(thread_id="thread-demo", run_id="run-demo"),
   ]
 }
