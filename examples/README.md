@@ -8,9 +8,9 @@
 
 | 目录 | 内容 |
 | --- | --- |
-| `basic_events` | 构造完整生命周期事件，校验事件顺序，并演示 JSON 解码与 SSE framing |
+| `basic_events` | 构造包含工具调用、工具结果和状态快照的完整生命周期，校验事件顺序，并演示 JSON 解码与 SSE framing |
 | `echo_server` | 使用 `AgUiAgent` 启动原生 HTTP `POST /agent` SSE 服务 |
-| `web_agent` | 完整浏览器前端、MoonBit SSE 后端，以及可发布到 GitHub Pages 的离线协议演示 |
+| `web_agent` | 完整浏览器前端、MoonBit SSE 后端，以及可发布到 GitHub Pages 的离线工具调用演示 |
 
 ## 运行
 
@@ -31,7 +31,7 @@ curl -N http://127.0.0.1:8087/agent \
   -d '{"threadId":"thread-1","runId":"run-1","messages":[{"id":"message-1","role":"user","content":"你好"}],"tools":[],"context":[]}'
 ```
 
-响应是 `data: {json}\n\n` 格式的 SSE 帧，包含 `RUN_STARTED`、文本消息事件和 `RUN_FINISHED`。`basic_events` 则完全离线地验证同一条事件流，并逐帧展示序列化结果。
+响应是 `data: {json}\n\n` 格式的 SSE 帧，包含 `RUN_STARTED`、工具调用、工具结果、状态快照、文本消息和 `RUN_FINISHED`。`basic_events` 则完全离线地验证同一条事件流，并逐帧展示序列化结果。
 
 ## 验证
 

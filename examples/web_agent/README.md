@@ -2,7 +2,7 @@
 
 [English](README.en.md) | 简体中文
 
-这是一个完整的 AG-UI 前后端示例：MoonBit native 后端输出 AG-UI SSE 事件，浏览器前端解析事件并实时渲染消息、生命周期和原始事件。前端默认使用内置离线事件流，因此发布到 GitHub Pages 后无需 API Key 或后端也能直接看到效果。
+这是一个可运行的 AG-UI MVP：MoonBit native 后端执行确定性的 `lookup` 工具调用，输出工具参数、工具结果、共享状态快照和最终文本的 AG-UI SSE 事件；浏览器前端解析事件并实时渲染消息、生命周期和原始事件。前端默认使用内置离线事件流，因此发布到 GitHub Pages 后无需 API Key 或后端也能直接看到效果。
 
 ## 本地运行
 
@@ -26,7 +26,7 @@ python -m http.server 4173 --directory examples/web_agent/frontend
 
 <https://quietlychan.github.io/moon-agui/>
 
-Pages 模式默认选中“离线演示”，可观察 `RUN_STARTED`、`STEP_STARTED`、文本增量、`STEP_FINISHED` 和 `RUN_FINISHED`。要连接真实 MoonBit 后端，需要把后端部署到支持 CORS 的 HTTPS 地址，再在页面中选择“连接后端”并填写 `/agent` 地址。
+Pages 模式默认选中“离线演示”，可观察 `RUN_STARTED`、`STEP_STARTED`、`TOOL_CALL_START`、`TOOL_CALL_RESULT`、`STATE_SNAPSHOT`、文本事件、`STEP_FINISHED` 和 `RUN_FINISHED`。要连接真实 MoonBit 后端，需要把后端部署到支持 CORS 的 HTTPS 地址，再在页面中选择“连接后端”并填写 `/agent` 地址。
 
 ## API
 

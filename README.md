@@ -22,6 +22,7 @@
 - **SSE transport**：`data: {json}\n\n` 帧、keepalive ping、CRLF、多行 `data:`、注释帧和流解析。
 - **原生 HTTP 服务**：`AgUiAgent` trait 和 `serve` 函数暴露 `POST /agent`，自动 flush SSE，并支持 CORS/OPTIONS 预检。
 - **事件 emitter**：带 middleware 的内存 `BufferedEmitter`，用于录制、重放、测试和把现有 agent 日志投影为 AG-UI 事件。
+- **可运行 MVP 工作流**：Web Agent 示例会执行确定性的 `lookup` 工具调用，流式返回工具参数、工具结果、共享状态快照和最终回复。
 
 当前版本专注于 JSON wire format 和 SSE transport，不包含 protobuf/binary encoder，也不提供 React/TypeScript UI 状态管理。
 
@@ -139,6 +140,7 @@ moon run examples/web_agent/backend
 
 - `frontend/`：原生 HTML/CSS/JavaScript 前端，解析 AG-UI SSE，展示文本消息和原始事件时间线。
 - `backend/`：MoonBit native HTTP 服务，提供 `GET /api/health` 和 `POST /agent`，支持 CORS。
+- 工具调用闭环：`TOOL_CALL_START` -> `TOOL_CALL_ARGS` -> `TOOL_CALL_END` -> `TOOL_CALL_RESULT` -> `STATE_SNAPSHOT`。
 - 离线模式：不需要后端和 API key，可以在 GitHub Pages 上直接运行确定性事件流。
 - 后端模式：填写 `/agent` 地址，观察真实 MoonBit SSE 事件。
 
