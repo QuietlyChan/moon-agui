@@ -19,21 +19,39 @@ impl @server.AgUiAgent for DemoAgent with fn run(self, input, emit) {
   ignore(self)
   let thread_id = input.thread_id()
   let run_id = input.run_id()
+  let tool_call_id = run_id + "-lookup"
+  let tool_message_id = run_id + "-tool-result"
   let message_id = run_id + "-assistant"
   let text = latest_user_text(input)
-  let reply = "MoonBit received: " + text
+  let tool_result = "Lookup complete for: " + text
+  let reply = "MoonBit received: " + text + ". " + tool_result
+  let state : Json = {
+    "lastTool": "lookup",
+    "query": text,
+    "result": tool_result,
+  }
   emit(@core.AgUiEvent::run_started(thread_id~, run_id~))
-  emit(@core.AgUiEvent::step_started(step_name="echo"))
-  emit(@core.AgUiEvent::text_message_start(message_id~, role="assistant"))
+  emit(@core.AgUiEvent::step_started(step_name="lookup"))
+  emit(@core.AgUiEvent::tool_call_start(tool_call_id~, tool_call_name="lookup"))
   emit(
-    @core.AgUiEvent::text_message_content(
-      message_id~,
-      delta="AG-UI SSE connected. ",
+    @core.AgUiEvent::tool_call_args(
+      tool_call_id~,
+      delta="{\"query\":\"\{text}\"}",
     ),
   )
+  emit(@core.AgUiEvent::tool_call_end(tool_call_id~))
+  emit(
+    @core.AgUiEvent::tool_call_result(
+      message_id=tool_message_id,
+      tool_call_id~,
+      content=Json::string(tool_result),
+    ),
+  )
+  emit(@core.AgUiEvent::state_snapshot(state))
+  emit(@core.AgUiEvent::text_message_start(message_id~, role="assistant"))
   emit(@core.AgUiEvent::text_message_content(message_id~, delta=reply))
   emit(@core.AgUiEvent::text_message_end(message_id~))
-  emit(@core.AgUiEvent::step_finished(step_name="echo"))
+  emit(@core.AgUiEvent::step_finished(step_name="lookup"))
   emit(@core.AgUiEvent::run_finished(thread_id~, run_id~))
 }
 

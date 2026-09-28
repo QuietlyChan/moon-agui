@@ -82,6 +82,7 @@ function summarize(event) {
     case "TEXT_MESSAGE_START": return event.role ? `role: ${event.role}` : "消息开始";
     case "TOOL_CALL_START": return event.toolCallName || "工具调用开始";
     case "TOOL_CALL_ARGS": return event.delta || "参数增量";
+    case "TOOL_CALL_RESULT": return event.content || "工具返回结果";
     case "STATE_SNAPSHOT": return "共享状态快照";
     case "STATE_DELTA": return "共享状态补丁";
     case "RUN_ERROR": return event.message || "运行错误";
@@ -137,15 +138,20 @@ function handleEvent(event, assistant) {
 
 function demoEvents(text, runId) {
   const reply = `这是 MoonBit AG-UI 的离线演示。你发送了：“${text}”`;
-  const chunks = ["这是 MoonBit AG-UI 的离线演示。", `你发送了：“${text}”`];
+  const toolCallId = `${runId}-lookup`;
+  const toolResult = `Lookup complete for: ${text}`;
   return [
     { type: "RUN_STARTED", threadId: state.threadId, runId, protocolVersion: "1.0" },
-    { type: "STEP_STARTED", stepName: "offline-demo" },
+    { type: "STEP_STARTED", stepName: "lookup" },
+    { type: "TOOL_CALL_START", toolCallId, toolCallName: "lookup" },
+    { type: "TOOL_CALL_ARGS", toolCallId, delta: JSON.stringify({ query: text }) },
+    { type: "TOOL_CALL_END", toolCallId },
+    { type: "TOOL_CALL_RESULT", messageId: `${runId}-tool-result`, toolCallId, content: toolResult, role: "tool" },
+    { type: "STATE_SNAPSHOT", snapshot: { lastTool: "lookup", query: text, result: toolResult } },
     { type: "TEXT_MESSAGE_START", messageId: `${runId}-message`, role: "assistant" },
-    ...chunks.map((delta) => ({ type: "TEXT_MESSAGE_CONTENT", messageId: `${runId}-message`, delta })),
+    { type: "TEXT_MESSAGE_CONTENT", messageId: `${runId}-message`, delta: reply },
     { type: "TEXT_MESSAGE_END", messageId: `${runId}-message` },
-    { type: "STATE_SNAPSHOT", snapshot: { mode: "offline", text: reply } },
-    { type: "STEP_FINISHED", stepName: "offline-demo" },
+    { type: "STEP_FINISHED", stepName: "lookup" },
     { type: "RUN_FINISHED", threadId: state.threadId, runId },
   ];
 }
